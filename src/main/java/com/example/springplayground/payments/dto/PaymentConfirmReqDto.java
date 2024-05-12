@@ -4,7 +4,8 @@ import lombok.Getter;
 import org.json.simple.JSONObject;
 
 @Getter
-public class PaymentConfirmRequestDto {
+public class PaymentConfirmReqDto {
+    private Long userId;
     private String paymentKey;
     private String orderId;
     private String amount;

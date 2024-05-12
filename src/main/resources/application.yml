@@ -6,7 +6,7 @@ spring:
     database: mysql
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
       generate-ddl: true
       show-sql: true
       properties:

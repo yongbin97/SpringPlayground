@@ -1,6 +1,5 @@
 package com.example.springplayground.payments.service;
 
-import com.example.springplayground.payments.dto.PaymentConfirmRequestDto;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -16,19 +15,17 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-
 @Slf4j
 @Service
-public class TossService {
+public class TossPaymentsService {
     @Value("${payments.toss.secretKey}")
     private String tossSecretKey;
 
-    public void confirmPayment(PaymentConfirmRequestDto paymentConfirmRequest) throws Exception {
-        log.info("toss confirm service");
+    public JSONObject requestConfirm(JSONObject paymentJSON) throws Exception {
+        log.info("[INFO] Toss Payments Service - requestConfirm");
+
         // Authorizations
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] encodedBytes = encoder.encode((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
-        String authorizations = "Basic " + new String(encodedBytes);
+        String authorizations = getAuthorizations();
 
         // 결제 승인 API 호출
         URL url = new URL("https://api.tosspayments.com/v1/payments/confirm");
@@ -39,19 +36,30 @@ public class TossService {
         connection.setDoOutput(true);
 
         OutputStream outputStream = connection.getOutputStream();
-        outputStream.write(paymentConfirmRequest.toJSON().toString().getBytes(StandardCharsets.UTF_8));
+        outputStream.write(paymentJSON.toString().getBytes(StandardCharsets.UTF_8));
 
-        int code = connection.getResponseCode();
-        boolean isSuccess = code == 200;
+        int responseCode = connection.getResponseCode();
+        boolean isSuccess = responseCode == 200;
 
         InputStream responseStream = isSuccess ? connection.getInputStream() : connection.getErrorStream();
 
-        // TODO: 결제 성공 및 실패 비즈니스 로직을 구현하세요.
         JSONParser parser = new JSONParser();
         Reader reader = new InputStreamReader(responseStream, StandardCharsets.UTF_8);
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         responseStream.close();
 
-        log.info("res" + jsonObject);
+        jsonObject.put("responseCode", responseCode);
+        if (isSuccess){
+            jsonObject.put("code", "SUCCESS");
+            jsonObject.put("message", "결제에 성공하였습니다.");
+        }
+
+        return jsonObject;
+    }
+
+    private String getAuthorizations(){
+        Base64.Encoder encoder = Base64.getEncoder();
+        byte[] encodedBytes = encoder.encode((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
+        return "Basic " + new String(encodedBytes);
     }
 }
