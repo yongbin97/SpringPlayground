@@ -1,6 +1,10 @@
 package com.example.springplayground.payments.service;
 
 import com.example.springplayground.payments.dto.PaymentConfirmResDto;
+import com.example.springplayground.payments.dto.TossConfirmResDto;
+import com.example.springplayground.payments.entity.Payment;
+import com.example.springplayground.payments.repository.PaymentRepository;
+import com.example.springplayground.user.entity.User;
 import com.example.springplayground.user.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,19 +16,23 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Service
 public class PaymentsService {
-    private final UserRepository userRepository;
     private final TossPaymentsService tossPaymentsService;
+
+    private final UserRepository userRepository;
+    private final PaymentRepository paymentRepository;
 
     public PaymentConfirmResDto requestConfirmToTossPayments(Long userId, JSONObject paymentJSON) throws Exception {
         log.info("[INFO] PaymentsService - requestConfirmToTossPayments");
 
-        if (!userRepository.existsUserById(userId)) throw new Exception("Not Exist User");
+        User user = userRepository.getUserById(userId);
+        TossConfirmResDto tossConfirmResDto = tossPaymentsService.requestConfirm(paymentJSON);
+        if (tossConfirmResDto.getResponseCode() != 200) {
+            log.error("[ERROR] Toss Payments Service - requestConfirm failed: {}", tossConfirmResDto.getMessage());
+            return tossConfirmResDto.toPaymentConfirmResDto();
+        }
+        Payment payment = paymentRepository.save(tossConfirmResDto.toEntity(user));
+        log.info("[INFO] new payment created: {} - {}", payment.getOrderId(), payment.getOrderName());
 
-        JSONObject responseJSON = tossPaymentsService.requestConfirm(paymentJSON);
-
-        return PaymentConfirmResDto.builder()
-                .code((String) responseJSON.get("code"))
-                .message((String) responseJSON.get("message"))
-                .build();
+        return tossConfirmResDto.toPaymentConfirmResDto();
     }
 }

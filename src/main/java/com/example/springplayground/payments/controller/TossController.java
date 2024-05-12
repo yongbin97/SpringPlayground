@@ -5,10 +5,13 @@ import com.example.springplayground.payments.dto.PaymentConfirmResDto;
 import com.example.springplayground.payments.service.PaymentsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 
 @Slf4j
 @RestController
@@ -18,9 +21,11 @@ public class TossController {
     private final PaymentsService paymentsService;
 
     @PostMapping("/confirm")
-    public void confirmPayment(@RequestBody PaymentConfirmReqDto paymentConfirmRequestDto) throws Exception {
+    public ResponseEntity<PaymentConfirmResDto> confirmPayment(@RequestBody PaymentConfirmReqDto paymentConfirmRequestDto) throws Exception {
         log.info("[INFO] Toss Controller - confirmPayment");
         PaymentConfirmResDto paymentConfirmResDto = paymentsService.requestConfirmToTossPayments(paymentConfirmRequestDto.getUserId(), paymentConfirmRequestDto.toJSON());
-        log.info("[INFO] PaymentConfirmResDto {}", paymentConfirmResDto);
+        log.info("[INFO] PaymentConfirmResDto {}", paymentConfirmResDto.toString());
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

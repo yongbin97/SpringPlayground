@@ -1,5 +1,6 @@
 package com.example.springplayground.payments.service;
 
+import com.example.springplayground.payments.dto.TossConfirmResDto;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -21,7 +22,7 @@ public class TossPaymentsService {
     @Value("${payments.toss.secretKey}")
     private String tossSecretKey;
 
-    public JSONObject requestConfirm(JSONObject paymentJSON) throws Exception {
+    public TossConfirmResDto requestConfirm(JSONObject paymentJSON) throws Exception {
         log.info("[INFO] Toss Payments Service - requestConfirm");
 
         // Authorizations
@@ -48,16 +49,15 @@ public class TossPaymentsService {
         JSONObject jsonObject = (JSONObject) parser.parse(reader);
         responseStream.close();
 
-        jsonObject.put("responseCode", responseCode);
-        if (isSuccess){
-            jsonObject.put("code", "SUCCESS");
-            jsonObject.put("message", "결제에 성공하였습니다.");
-        }
-
-        return jsonObject;
+        return TossConfirmResDto.builder()
+                .responseCode(responseCode)
+                .obj(jsonObject)
+                .code(isSuccess ? "SUCCESS" : (String) jsonObject.get("code"))
+                .message(isSuccess ? "결제에 성공하였습니다." : (String) jsonObject.get("message"))
+                .build();
     }
 
-    private String getAuthorizations(){
+    private String getAuthorizations() {
         Base64.Encoder encoder = Base64.getEncoder();
         byte[] encodedBytes = encoder.encode((tossSecretKey + ":").getBytes(StandardCharsets.UTF_8));
         return "Basic " + new String(encodedBytes);
