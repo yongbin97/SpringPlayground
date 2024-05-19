@@ -5,6 +5,7 @@ import com.example.springplayground.payments.dto.TossConfirmResDto;
 import com.example.springplayground.payments.entity.Payment;
 import com.example.springplayground.payments.repository.PaymentRepository;
 import com.example.springplayground.user.entity.User;
+import com.example.springplayground.user.implement.UserReader;
 import com.example.springplayground.user.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,15 +17,15 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @Service
 public class PaymentsService {
-    private final TossPaymentsService tossPaymentsService;
+    private final UserReader userReader;
 
-    private final UserRepository userRepository;
+    private final TossPaymentsService tossPaymentsService;
     private final PaymentRepository paymentRepository;
 
     public PaymentConfirmResDto requestConfirmToTossPayments(Long userId, JSONObject paymentJSON) throws Exception {
         log.info("[INFO] PaymentsService - requestConfirmToTossPayments");
+        User user = userReader.read(userId);
 
-        User user = userRepository.getUserById(userId);
         TossConfirmResDto tossConfirmResDto = tossPaymentsService.requestConfirm(paymentJSON);
         if (tossConfirmResDto.getResponseCode() != 200) {
             log.error("[ERROR] Toss Payments Service - requestConfirm failed: {}", tossConfirmResDto.getMessage());
