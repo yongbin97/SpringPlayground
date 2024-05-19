@@ -24,8 +24,6 @@ public class TossController {
     public ResponseEntity<PaymentConfirmResDto> confirmPayment(@RequestBody PaymentConfirmReqDto paymentConfirmRequestDto) throws Exception {
         log.info("[INFO] Toss Controller - confirmPayment");
         PaymentConfirmResDto paymentConfirmResDto = paymentsService.requestConfirmToTossPayments(paymentConfirmRequestDto.getUserId(), paymentConfirmRequestDto.toJSON());
-        log.info("[INFO] PaymentConfirmResDto {}", paymentConfirmResDto.toString());
-
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(paymentConfirmResDto, HttpStatus.OK);
     }
 }

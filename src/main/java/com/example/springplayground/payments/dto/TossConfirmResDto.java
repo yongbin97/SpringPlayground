@@ -8,8 +8,6 @@ import lombok.Builder;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 
-import java.time.LocalDateTime;
-
 @Builder
 @Getter
 public class TossConfirmResDto {

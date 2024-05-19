@@ -2,9 +2,8 @@ package com.example.springplayground.payments.service;
 
 import com.example.springplayground.payments.dto.PaymentConfirmResDto;
 import com.example.springplayground.payments.dto.TossConfirmResDto;
-import com.example.springplayground.payments.entity.Payment;
+import com.example.springplayground.payments.implement.PaymentManager;
 import com.example.springplayground.payments.implement.TossManager;
-import com.example.springplayground.payments.repository.PaymentRepository;
 import com.example.springplayground.user.entity.User;
 import com.example.springplayground.user.implement.UserReader;
 import lombok.AllArgsConstructor;
@@ -19,20 +18,13 @@ import org.springframework.stereotype.Service;
 public class PaymentsService {
     private final UserReader userReader;
     private final TossManager tossManager;
-    private final PaymentRepository paymentRepository;
+    private final PaymentManager paymentManager;
 
     public PaymentConfirmResDto requestConfirmToTossPayments(Long userId, JSONObject paymentJSON) throws Exception {
         log.info("[INFO] PaymentsService - requestConfirmToTossPayments");
+
         User user = userReader.read(userId);
-
         TossConfirmResDto tossConfirmResDto = tossManager.confirm(paymentJSON);
-        if (tossConfirmResDto.getResponseCode() != 200) {
-            log.error("[ERROR] Toss Payments Service - requestConfirm failed: {}", tossConfirmResDto.getMessage());
-            return tossConfirmResDto.toPaymentConfirmResDto();
-        }
-        Payment payment = paymentRepository.save(tossConfirmResDto.toEntity(user));
-        log.info("[INFO] new payment created: {} - {}", payment.getOrderId(), payment.getOrderName());
-
-        return tossConfirmResDto.toPaymentConfirmResDto();
+        return paymentManager.save(user, tossConfirmResDto);
     }
 }
